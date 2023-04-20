@@ -6,6 +6,9 @@
   "scripts": {
     "start:dev": "npx ts-node ./src/index.ts"
   },
+  "prisma": {
+    "seed": "ts-node --transpile-only prisma/seed.ts"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {

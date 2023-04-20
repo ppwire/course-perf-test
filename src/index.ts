@@ -1,70 +1,61 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { writeFile } from "fs";
-import { orderBy } from "lodash";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const startTime = performance.now();
-  // const result = await prisma.course.findUnique({
-  //   where: {
-  //     id: "06b10cea-36b8-4924-8de3-dea7afd8bfff",
-  //   },
-  //   include: {
-  //     courseVersioneds: {
-  //       orderBy: {
-  //         revision: "desc",
-  //       },
-  //       take: 1,
-  //       include: {
-  //         courseMasterRecords: {
-  //           orderBy: {
-  //             revision: "desc",
-  //           },
-  //           include: {
-  //             masterRecord: true,
-  //           },
-  //         },
-  //         parts: {
-  //           orderBy: {
-  //             revision: "desc",
-  //           },
-  //           include: {
-  //             part: {
-  //               include: {
-  //                 sections: {
-  //                   include: {
-  //                     section: {
-  //                       include: {
-  //                         subsections: {
-  //                           include: {
-  //                             subsection: {
-  //                               include: {
-  //                                 courseAssets: true,
-  //                               },
-  //                             },
-  //                           },
-  //                         },
-  //                       },
-  //                     },
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  // });
 
-  const result = prisma.course.findUnique({
+  const result = await prisma.course.findUnique({
     where: {
-      id: "1e12b0e0-c2cc-4198-ba57-66ccd7052022",
+      id: "a5745940-52ce-41f2-b265-6af06751b432",
+    },
+    include: {
+      courseBin: true,
+      courseRevisions: {
+        orderBy: {
+          revision: "desc",
+        },
+        take: 1,
+        include: {
+          courseMasterRecords: {
+            include: {
+              masterRecord: true,
+            },
+          },
+          parts: {
+            include: {
+              part: {
+                include: {
+                  sections: {
+                    include: {
+                      section: {
+                        include: {
+                          subsections: {
+                            include: {
+                              subsection: {
+                                include: {
+                                  courseAssets: {
+                                    include: {
+                                      asset: true,
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
-
-  console.log(result);
 
   const endTime = performance.now();
 

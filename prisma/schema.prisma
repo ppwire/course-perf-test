@@ -115,25 +115,22 @@ model CourseBin {
 }
 
 model CourseMasterRecord {
+  id                   String                       @id
   masterRecordId       String
   masterRecordRevision Int
-  revision             Int
   values               Json[]
   courses              CourseMasterRecordRelation[]
-
-  @@id([masterRecordId, revision])
 }
 
 model CourseMasterRecordRelation {
-  masterRecordId       String
-  courseId             String
-  masterRecordRevision Int
-  metaRevision         Int
-  masterRecord         CourseMasterRecord @relation(fields: [masterRecordId, masterRecordRevision], references: [masterRecordId, revision])
-  course               CourseRevision     @relation(fields: [courseId, metaRevision, revision], references: [courseId, metaRevision, revision])
-  revision             Int
+  masterRecordId     String
+  courseId           String
+  courseMetaRevision Int
+  courseRevision     Int
+  masterRecord       CourseMasterRecord @relation(fields: [masterRecordId], references: [id])
+  course             CourseRevision     @relation(fields: [courseId, courseMetaRevision, courseRevision], references: [courseId, metaRevision, revision])
 
-  @@id([masterRecordId, courseId, metaRevision])
+  @@id([masterRecordId, courseId, courseMetaRevision])
 }
 
 model CoursePartRelation {
