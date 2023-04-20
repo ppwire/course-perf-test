@@ -37,7 +37,6 @@ async function main() {
   const courseAssetRevision = 2;
 
   const masterRecordAmount = 2;
-  const masterRecordRevision = 2;
 
   for (let i = 0; i < courseAmount; i++) {
     const courseId = uuidv4();
