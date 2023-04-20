@@ -11,142 +11,100 @@ datasource db {
 }
 
 model Course {
-  id               String            @id
-  version          String
-  courseVersioneds CourseVersioned[]
-  courseBin        CourseBin[]
+  id              String           @id
+  version         String
+  courseRevisions CourseRevision[]
+  courseBin       CourseBin[]
 }
 
-model CourseVersioned {
+model CourseRevision {
   courseId            String
   revision            Int
   internalNote        String
   course              Course                       @relation(fields: [courseId], references: [id])
-  brickRevision       Int
+  itemsRevision       Int
   metaRevision        Int
   parts               CoursePartRelation[]
   courseMasterRecords CourseMasterRecordRelation[]
 
-  @@id([courseId, revision, brickRevision, metaRevision])
-  @@unique([courseId, brickRevision, revision])
-  @@unique([courseId, metaRevision, revision])
+  @@id([courseId, revision])
+  @@unique([courseId, revision, metaRevision])
+  @@unique([courseId, revision, itemsRevision])
 }
 
 model Part {
-  id             String          @id
-  partVersioneds PartVersioned[]
+  id            String         @id
+  partRevisions PartRevision[]
 }
 
-model PartVersioned {
-  partId       String
-  revision     Int
-  title        String
-  part         Part                  @relation(fields: [partId], references: [id])
-  metaRevision Int
-  courses      CoursePartRelation[]
-  sections     PartSectionRelation[]
+model PartRevision {
+  partId        String
+  revision      Int
+  title         String
+  part          Part                  @relation(fields: [partId], references: [id])
+  itemsRevision Int
+  courses       CoursePartRelation[]
+  sections      PartSectionRelation[]
 
-  @@id([partId, revision, metaRevision])
-}
-
-model CoursePartRelation {
-  courseId String
-  partId   String
-  course   CourseVersioned @relation(fields: [courseId, brickRevision, revision], references: [courseId, brickRevision, revision])
-  part     PartVersioned   @relation(fields: [partId, partRevision, partMetaRevision], references: [partId, revision, metaRevision])
-
-  partMetaRevision Int
-  partRevision     Int
-  brickRevision    Int
-  revision         Int
-
-  @@id([courseId, partId, brickRevision])
+  @@id([partId, revision])
+  @@unique([partId, revision, itemsRevision])
 }
 
 model Section {
-  id                String             @id
-  sectionVersioneds SectionVersioned[]
+  id               String            @id
+  sectionRevisions SectionRevision[]
 }
 
-model SectionVersioned {
-  sectionId    String
-  revision     Int
-  title        String
-  section      Section                     @relation(fields: [sectionId], references: [id])
-  metaRevision Int
-  parts        PartSectionRelation[]
-  subsections  SectionSubsectionRelation[]
+model SectionRevision {
+  sectionId     String
+  revision      Int
+  title         String
+  section       Section                     @relation(fields: [sectionId], references: [id])
+  itemsRevision Int
+  parts         PartSectionRelation[]
+  subsections   SectionSubsectionRelation[]
 
-  @@id([sectionId, revision, metaRevision])
-}
-
-model PartSectionRelation {
-  partId              String
-  sectionId           String
-  part                PartVersioned    @relation(fields: [partId, partRevision, partMetaRevision], references: [partId, revision, metaRevision])
-  section             SectionVersioned @relation(fields: [sectionId, sectionRevision, sectionMetaRevision], references: [sectionId, revision, metaRevision])
-  sectionMetaRevision Int
-  partRevision        Int
-  partMetaRevision    Int
-  sectionRevision     Int
-
-  @@id([partId, sectionId, partRevision])
+  @@id([sectionId, revision])
+  @@unique([sectionId, revision, itemsRevision])
 }
 
 model Subsection {
-  id                   String                @id
-  subsectionVersioneds SubsectionVersioned[]
+  id                  String               @id
+  subsectionRevisions SubsectionRevision[]
 }
 
-model SubsectionVersioned {
-  subsectionId String
-  revision     Int
-  title        String
-  subsection   Subsection                      @relation(fields: [subsectionId], references: [id])
-  metaRevision Int
-  sections     SectionSubsectionRelation[]
-  courseAssets SubsectionCourseAssetRelation[]
+model SubsectionRevision {
+  subsectionId  String
+  revision      Int
+  title         String
+  subsection    Subsection                      @relation(fields: [subsectionId], references: [id])
+  itemsRevision Int
+  sections      SectionSubsectionRelation[]
+  courseAssets  SubsectionCourseAssetRelation[]
+  //if update self -> revision ++ but itemsRevision is the same then it shoud use revision + itemsRevision as unique
 
-  @@id([subsectionId, revision, metaRevision])
-}
-
-model SectionSubsectionRelation {
-  sectionId              String
-  subsectionId           String
-  section                SectionVersioned    @relation(fields: [sectionId, sectionRevision, sectionMetaRevision], references: [sectionId, revision, metaRevision])
-  subsection             SubsectionVersioned @relation(fields: [subsectionId, subsectionRevision, subsectionMetaRevision], references: [subsectionId, revision, metaRevision])
-  sectionRevision        Int
-  subsectionRevision     Int
-  sectionMetaRevision    Int
-  subsectionMetaRevision Int
-
-  @@id([sectionId, subsectionId, sectionRevision])
-}
-
-model SubsectionCourseAssetRelation {
-  subsectionId String
-  assetId      String
-  subsection   SubsectionVersioned @relation(fields: [subsectionId, subsectionRevision, subsectionMetaRevision], references: [subsectionId, revision, metaRevision])
-  asset        CourseAsset         @relation(fields: [assetId, assetRevision], references: [assetId, revision])
-
-  assetRevision          Int
-  subsectionRevision     Int
-  subsectionMetaRevision Int
-
-  @@id([subsectionId, assetId, subsectionRevision])
+  @@id([subsectionId, revision])
+  @@unique([subsectionId, revision, itemsRevision])
 }
 
 model CourseAsset {
-  assetId       String
-  assetRevision Int
-  assetType     String
-  timestamp     String
-  displayName   String
-  other         String
-  revision      Int
-  subsections   SubsectionCourseAssetRelation[]
+  id                  String                @id
+  assetId             String
+  assetRevision       Int
+  assetType           String
+  CourseAssetRevision CourseAssetRevision[]
+}
 
-  @@id([assetId, revision])
+model CourseAssetRevision {
+  courseAssetId                 String
+  timestamp                     String
+  displayName                   String
+  other                         String
+  revision                      Int
+  courseAsset                   CourseAsset                     @relation(fields: [courseAssetId], references: [id])
+  SubsectionCourseAssetRelation SubsectionCourseAssetRelation[]
+
+  @@id([courseAssetId, revision])
 }
 
 model CourseBin {
@@ -172,8 +130,58 @@ model CourseMasterRecordRelation {
   masterRecordRevision Int
   metaRevision         Int
   masterRecord         CourseMasterRecord @relation(fields: [masterRecordId, masterRecordRevision], references: [masterRecordId, revision])
-  course               CourseVersioned    @relation(fields: [courseId, metaRevision, revision], references: [courseId, metaRevision, revision])
+  course               CourseRevision     @relation(fields: [courseId, metaRevision, revision], references: [courseId, metaRevision, revision])
   revision             Int
 
   @@id([masterRecordId, courseId, metaRevision])
+}
+
+model CoursePartRelation {
+  courseId            String
+  partId              String
+  course              CourseRevision @relation(fields: [courseId, courseItemsRevision, courseRevision], references: [courseId, itemsRevision, revision])
+  part                PartRevision   @relation(fields: [partId, partRevision], references: [partId, revision])
+  courseItemsRevision Int
+  partRevision        Int
+  courseRevision      Int
+
+  @@id([courseId, partId, courseItemsRevision])
+}
+
+model PartSectionRelation {
+  partId            String
+  sectionId         String
+  part              PartRevision    @relation(fields: [partId, partItemsRevision, partRevision], references: [partId, itemsRevision, revision])
+  section           SectionRevision @relation(fields: [sectionId, sectionRevision], references: [sectionId, revision])
+  partItemsRevision Int
+  sectionRevision   Int
+  partRevision      Int
+
+  @@id([partId, sectionId, partItemsRevision])
+}
+
+model SectionSubsectionRelation {
+  sectionId    String
+  subsectionId String
+  section      SectionRevision    @relation(fields: [sectionId, sectionItemsRevision, sectionRevision], references: [sectionId, itemsRevision, revision])
+  subsection   SubsectionRevision @relation(fields: [subsectionId, subsectionRevision], references: [subsectionId, revision])
+
+  sectionItemsRevision Int
+  subsectionRevision   Int
+  sectionRevision      Int
+
+  @@id([sectionId, subsectionId, sectionItemsRevision])
+}
+
+model SubsectionCourseAssetRelation {
+  subsectionId  String
+  courseAssetId String
+  subsection    SubsectionRevision  @relation(fields: [subsectionId, subsectionItemsRevision, subsectionRevision], references: [subsectionId, itemsRevision, revision])
+  asset         CourseAssetRevision @relation(fields: [courseAssetId, courseAssetRevision], references: [courseAssetId, revision])
+
+  subsectionItemsRevision Int
+  courseAssetRevision     Int
+  subsectionRevision      Int
+
+  @@id([subsectionId, courseAssetId, subsectionItemsRevision])
 }
