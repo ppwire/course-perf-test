@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id               String            @id
+  version          String
+  courseVersioneds CourseVersioned[]
+  courseBin        CourseBin[]
+}
+
+model CourseVersioned {
+  courseId            String
+  revision            Int
+  internalNote        String
+  course              Course                       @relation(fields: [courseId], references: [id])
+  brickRevision       Int
+  metaRevision        Int
+  parts               CoursePartRelation[]
+  courseMasterRecords CourseMasterRecordRelation[]
+
+  @@id([courseId, revision, brickRevision, metaRevision])
+  @@unique([courseId, brickRevision, revision])
+  @@unique([courseId, metaRevision, revision])
+}
+
+model Part {
+  id             String          @id
+  partVersioneds PartVersioned[]
+}
+
+model PartVersioned {
+  partId       String
+  revision     Int
+  title        String
+  part         Part                  @relation(fields: [partId], references: [id])
+  metaRevision Int
+  courses      CoursePartRelation[]
+  sections     PartSectionRelation[]
+
+  @@id([partId, revision, metaRevision])
+}
+
+model CoursePartRelation {
+  courseId String
+  partId   String
+  course   CourseVersioned @relation(fields: [courseId, brickRevision, revision], references: [courseId, brickRevision, revision])
+  part     PartVersioned   @relation(fields: [partId, partRevision, partMetaRevision], references: [partId, revision, metaRevision])
+
+  partMetaRevision Int
+  partRevision     Int
+  brickRevision    Int
+  revision         Int
+
+  @@id([courseId, partId, brickRevision])
+}
+
+model Section {
+  id                String             @id
+  sectionVersioneds SectionVersioned[]
+}
+
+model SectionVersioned {
+  sectionId    String
+  revision     Int
+  title        String
+  section      Section                     @relation(fields: [sectionId], references: [id])
+  metaRevision Int
+  parts        PartSectionRelation[]
+  subsections  SectionSubsectionRelation[]
+
+  @@id([sectionId, revision, metaRevision])
+}
+
+model PartSectionRelation {
+  partId              String
+  sectionId           String
+  part                PartVersioned    @relation(fields: [partId, partRevision, partMetaRevision], references: [partId, revision, metaRevision])
+  section             SectionVersioned @relation(fields: [sectionId, sectionRevision, sectionMetaRevision], references: [sectionId, revision, metaRevision])
+  sectionMetaRevision Int
+  partRevision        Int
+  partMetaRevision    Int
+  sectionRevision     Int
+
+  @@id([partId, sectionId, partRevision])
+}
+
+model Subsection {
+  id                   String                @id
+  subsectionVersioneds SubsectionVersioned[]
+}
+
+model SubsectionVersioned {
+  subsectionId String
+  revision     Int
+  title        String
+  subsection   Subsection                      @relation(fields: [subsectionId], references: [id])
+  metaRevision Int
+  sections     SectionSubsectionRelation[]
+  courseAssets SubsectionCourseAssetRelation[]
+
+  @@id([subsectionId, revision, metaRevision])
+}
+
+model SectionSubsectionRelation {
+  sectionId              String
+  subsectionId           String
+  section                SectionVersioned    @relation(fields: [sectionId, sectionRevision, sectionMetaRevision], references: [sectionId, revision, metaRevision])
+  subsection             SubsectionVersioned @relation(fields: [subsectionId, subsectionRevision, subsectionMetaRevision], references: [subsectionId, revision, metaRevision])
+  sectionRevision        Int
+  subsectionRevision     Int
+  sectionMetaRevision    Int
+  subsectionMetaRevision Int
+
+  @@id([sectionId, subsectionId, sectionRevision])
+}
+
+model SubsectionCourseAssetRelation {
+  subsectionId String
+  assetId      String
+  subsection   SubsectionVersioned @relation(fields: [subsectionId, subsectionRevision, subsectionMetaRevision], references: [subsectionId, revision, metaRevision])
+  asset        CourseAsset         @relation(fields: [assetId, assetRevision], references: [assetId, revision])
+
+  assetRevision          Int
+  subsectionRevision     Int
+  subsectionMetaRevision Int
+
+  @@id([subsectionId, assetId, subsectionRevision])
+}
+
+model CourseAsset {
+  assetId       String
+  assetRevision Int
+  assetType     String
+  timestamp     String
+  displayName   String
+  other         String
+  revision      Int
+  subsections   SubsectionCourseAssetRelation[]
+
+  @@id([assetId, revision])
+}
+
+model CourseBin {
+  id       String @id
+  assets   Json[]
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+}
+
+model CourseMasterRecord {
+  masterRecordId       String
+  masterRecordRevision Int
+  revision             Int
+  values               Json[]
+  courses              CourseMasterRecordRelation[]
+
+  @@id([masterRecordId, revision])
+}
+
+model CourseMasterRecordRelation {
+  masterRecordId       String
+  courseId             String
+  masterRecordRevision Int
+  metaRevision         Int
+  masterRecord         CourseMasterRecord @relation(fields: [masterRecordId, masterRecordRevision], references: [masterRecordId, revision])
+  course               CourseVersioned    @relation(fields: [courseId, metaRevision, revision], references: [courseId, metaRevision, revision])
+  revision             Int
+
+  @@id([masterRecordId, courseId, metaRevision])
+}
